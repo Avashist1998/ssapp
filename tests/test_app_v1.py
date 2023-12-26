@@ -212,5 +212,14 @@ class SSAppV1(unittest.TestCase):
             self.game.get_event_info(res).event_santa_map,
         )
 
+    def test_cancel_events(self):
+        """Cancel Event method"""
+        res = self.game.create_event(**self.mock_events["even_player"])
+
+        self.assertEqual(str, type(res))
+        self.game.cancel_event(res)
+        self.assertIsNone(self.game.get_event_info(res))
+
+
 if __name__ == "__main__":
     unittest.main()

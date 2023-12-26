@@ -50,12 +50,19 @@ class SSApp:
             if player in _choices:
                 _choices.remove(player)
                 remove_self = True
-            pick = random.choice(list(_choices))
-            if remove_self:
-                _choices.add(player)
 
-            _choices.remove(pick)
-            _lookup[player] = pick
+            if len(_choices) >= 1:
+                pick = random.choice(list(_choices))
+                _choices.remove(pick)
+                _lookup[player] = pick
+                if remove_self:
+                    _choices.add(player)
+            else:
+                pick = random.choice(list(_lookup.keys()))
+                _odd_ss = _lookup[pick]
+                _lookup[pick] = player
+                _lookup[player] = _odd_ss
+
         return _lookup
 
     def create_event(self, name:str,

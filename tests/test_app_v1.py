@@ -1,5 +1,6 @@
 """Test for SSAppV1"""
 import unittest
+from unittest.mock import patch
 from datetime import datetime
 from src.app_v1 import SSApp, NotEnoughPlayersException
 
@@ -7,6 +8,8 @@ class SSAppV1(unittest.TestCase):
     """Test of SecreteSantaApp"""
 
     def setUp(self) -> None:
+        """Setup for SSAppV1"""
+
         self.game = SSApp()
         self.mock_events = {
             "missing_players": {
@@ -110,6 +113,104 @@ class SSAppV1(unittest.TestCase):
             self.game.get_event_info(res).event_location,
         )
 
+    @patch("src.app_v1.random")
+    def test_odd_player_case(self, mock_random):
+        """Odd Player Case"""
+        mock_random.choice.side_effect = ["B", "C", "A"]
+        exp_odd_map = {"A": "B", "B":"C", "C":"A"}
+        res = self.game.create_event(**self.mock_events["odd_player"])
+        self.assertEqual(str, type(res))
+        self.assertEqual(
+            self.mock_events["odd_player"]["name"],
+            self.game.get_event_info(res).event_name,
+        )
+        self.assertEqual(
+            self.mock_events["odd_player"]["date_time"],
+            self.game.get_event_info(res).event_date_time,
+        )
+        self.assertEqual(
+            self.mock_events["odd_player"]["participants"],
+            self.game.get_event_info(res).event_participants,
+        )
+        self.assertEqual(
+            self.mock_events["odd_player"]["location"],
+            self.game.get_event_info(res).event_location,
+        )
+        self.assertEqual(
+            len(exp_odd_map),
+            len(self.game.get_event_info(res).event_santa_map),
+        )
+
+        self.assertDictEqual(
+            exp_odd_map,
+            self.game.get_event_info(res).event_santa_map,
+        )
+
+    @patch("src.app_v1.random")
+    def test_odd_player_with_out_of_choices_case(self, mock_random):
+        """Odd Player with out of choices Case"""
+        mock_random.choice.side_effect = ["B", "A", "A"]
+        exp_odd_map = {"A": "C", "B":"A", "C":"B"}
+        res = self.game.create_event(**self.mock_events["odd_player"])
+        self.assertEqual(str, type(res))
+        self.assertEqual(
+            self.mock_events["odd_player"]["name"],
+            self.game.get_event_info(res).event_name,
+        )
+        self.assertEqual(
+            self.mock_events["odd_player"]["date_time"],
+            self.game.get_event_info(res).event_date_time,
+        )
+        self.assertEqual(
+            self.mock_events["odd_player"]["participants"],
+            self.game.get_event_info(res).event_participants,
+        )
+        self.assertEqual(
+            self.mock_events["odd_player"]["location"],
+            self.game.get_event_info(res).event_location,
+        )
+        self.assertEqual(
+            len(exp_odd_map),
+            len(self.game.get_event_info(res).event_santa_map),
+        )
+
+        self.assertDictEqual(
+            exp_odd_map,
+            self.game.get_event_info(res).event_santa_map,
+        )
+
+    @patch("src.app_v1.random")
+    def test_even_player(self, mock_random):
+        """Even Player Case"""
+        mock_random.choice.side_effect = ["B", "A", "D", "C"]
+        exp_odd_map = {"A": "B", "B":"A", "C":"D", "D":"C"}
+        res = self.game.create_event(**self.mock_events["even_player"])
+        self.assertEqual(str, type(res))
+        self.assertEqual(
+            self.mock_events["even_player"]["name"],
+            self.game.get_event_info(res).event_name,
+        )
+        self.assertEqual(
+            self.mock_events["even_player"]["date_time"],
+            self.game.get_event_info(res).event_date_time,
+        )
+        self.assertEqual(
+            self.mock_events["even_player"]["participants"],
+            self.game.get_event_info(res).event_participants,
+        )
+        self.assertEqual(
+            self.mock_events["even_player"]["location"],
+            self.game.get_event_info(res).event_location,
+        )
+        self.assertEqual(
+            len(exp_odd_map),
+            len(self.game.get_event_info(res).event_santa_map),
+        )
+
+        self.assertDictEqual(
+            exp_odd_map,
+            self.game.get_event_info(res).event_santa_map,
+        )
 
 if __name__ == "__main__":
     unittest.main()

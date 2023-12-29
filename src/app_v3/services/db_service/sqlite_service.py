@@ -3,8 +3,9 @@ from typing import Any, Optional
 from sqlalchemy.orm import  Session
 from sqlalchemy.exc import SQLAlchemyError
 
+from models.entry import Entry, EntryBase
 from models.player import Player, PlayerBase
-from models.event import Event, EventCreate
+from models.event import Event, EventBase
 from db.schema import PlayerORM, EventORM, EntryORM
 from services.db_service.utils import FailedToCreateException, FailedToGetException, FailedToDeleteException, FailedToUpdateException
 
@@ -72,7 +73,33 @@ class SqliteService:
         except Exception as err:
             print(f"Error updating player in database with {player.email=}", err)
 
-    def add_event(self, db: Session, event: EventCreate) -> Event:
+    def get_events(self, db: Session, offset:int = 1, limit: int = 10, creator_email: Optional[str] = None, public: bool = True) -> list[Event]:
+        """Get all events from the database"""
+        try:
+            print(f"total number of events in db = {db.query(EventORM).count()}")
+            print(db.query(EventORM).filter(EventORM.public == public).offset(offset-1*limit).limit(limit).count())
+            db_events = db.query(EventORM).filter(
+                EventORM.public == public) \
+            .offset((offset-1)*limit) \
+            .limit(limit).all()
+            if creator_email:
+                print(creator_email)
+                db_events = db.query(EventORM) \
+                    .filter(EventORM.creator == creator_email) \
+                    .filter(EventORM.public == public) \
+                    .offset((offset-1)*limit) \
+                    .limit(limit).all()
+            db.commit()
+            print(db_events)
+            return [Event.model_validate(db_event) for db_event in db_events]
+        except SQLAlchemyError as err:
+            print(err)
+            raise FailedToGetException("Failed to get events") from err
+        except Exception as err:
+            print(err)
+            print(f"Error getting events to database", err)
+
+    def add_event(self, db: Session, event: EventBase) -> Event:
         """Add a event to the database"""
         try:
             db_event = EventORM(name=event.name, 
@@ -146,28 +173,36 @@ class SqliteService:
         except Exception as err:
             print(f"Error updating event in database with {event.id=}", err)
 
-    def get_events(self, db: Session, offset:int = 1, limit: int = 10, creator_email: Optional[str] = None, public: bool = True) -> list[Event]:
-        """Get all events from the database"""
+    def add_entry(self, db: Session, entry: EntryBase) -> Entry:
+        """Create a entry in the database"""
         try:
-            print(f"total number of events in db = {db.query(EventORM).count()}")
-            print(db.query(EventORM).filter(EventORM.public == public).offset(offset-1*limit).limit(limit).count())
-            db_events = db.query(EventORM).filter(
-                EventORM.public == public) \
-            .offset((offset-1)*limit) \
-            .limit(limit).all()
-            if creator_email:
-                print(creator_email)
-                db_events = db.query(EventORM) \
-                    .filter(EventORM.creator == creator_email) \
-                    .filter(EventORM.public == public) \
-                    .offset((offset-1)*limit) \
-                    .limit(limit).all()
+            db_entry = EntryORM(
+                player_email=entry.player_email,
+                ss_recipient_email = entry.ss_recipient_email,
+            )
+            db.add(db_entry)
             db.commit()
-            print(db_events)
-            return [Event.model_validate(db_event) for db_event in db_events]
+            print(db_entry.id)
+            db.refresh(db_entry)
+            return Entry.model_validate(db_entry)
         except SQLAlchemyError as err:
-            print(err)
-            raise FailedToGetException("Failed to get events") from err
+           raise FailedToCreateException("Failed to create entry") from err
         except Exception as err:
             print(err)
-            print(f"Error getting events to database", err)
+            print("Something went wrong", err)
+
+    def get_entry(self, db: Session, _id: int) -> Optional[Entry]:
+        try:
+            db_entry = db.query(EntryORM).filter(EntryORM.id == _id).first()
+            db.commit()
+            if db_entry is None:
+                return None
+            return Entry.model_validate(db_entry)
+        except SQLAlchemyError as err:
+           raise FailedToGetException("Failed to get entry") from err
+        except Exception as err:
+            print(err)
+            print("Something went wrong", err)
+
+    def update_entry(self, db: Session, entry: EntryBase) -> Optional[Entry]:
+        db.queue(EntryORM).filter(EntryORM.player_email == entry.player_email).filter(EntryORM.event_id == entry.event_id)

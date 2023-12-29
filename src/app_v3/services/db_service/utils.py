@@ -4,6 +4,41 @@ from abc import ABC, abstractmethod
 
 from models import Event, Player, Entry
 
+class DataServiceException(Exception):
+    """Data service exception"""
+    def __init__(self, message: str):
+        """Constructor"""
+        self.message = message
+
+class FailedToCreateException(DataServiceException):
+    """Failed to create exception"""
+    def __init__(self, message: str):
+        """Constructor"""
+        self.msg = message
+        super().__init__(message)
+
+class FailedToDeleteException(DataServiceException):
+    """Failed to delete exception"""
+    def __init__(self, message: str):
+        """Constructor"""
+        self.msg = message
+        super().__init__(message)
+
+class FailedToUpdateException(DataServiceException):
+    """Failed to update exception"""
+    def __init__(self, message: str):
+        """Constructor"""
+        self.msg = message
+        super().__init__(message)
+
+class FailedToGetException(DataServiceException):
+    """Failed to get exception"""
+    def __init__(self, message: str):
+        """Constructor"""
+        self.msg = message
+        super().__init__(message)
+
+
 class DataService(ABC):
     """DataStore interface"""
 
@@ -13,7 +48,7 @@ class DataService(ABC):
         """Add a player to the database"""
 
     @abstractmethod
-    def delete_player(self, player_id: str):
+    def delete_player(self, email: str):
         """Delete a player from the database"""
 
 
@@ -22,7 +57,7 @@ class DataService(ABC):
         """Update a player in the database"""
 
     @abstractmethod
-    def get_player(self, player_id: str) -> Player:
+    def get_player(self, email: str) -> Player:
         """Get a player from the database"""
 
 
@@ -65,4 +100,3 @@ class DataService(ABC):
     @abstractmethod
     def get_events(self, page: int = 1, page_size:int = 10) -> List[Event]:
         """Get events from the database"""
-        

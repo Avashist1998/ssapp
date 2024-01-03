@@ -14,7 +14,8 @@ class PlayerORM(Base):
     email = Column(String, unique=True, primary_key=True, index=True)
     created_date = Column(DateTime, nullable=False, index=False, default=datetime.now())
 
-    entries: Mapped[List["EntryORM"]] = relationship("EntryORM", back_populates="player")
+    entries: Mapped[List["EntryORM"]] = relationship("EntryORM",
+                                                     foreign_keys="EntryORM.player_email")
 
 
 class EventORM(Base):
@@ -35,7 +36,7 @@ class EventORM(Base):
     event_date = Column(DateTime, nullable=False, index=False)
     created_date = Column(DateTime, nullable=False, index=False, default=datetime.now())
 
-    entries: Mapped[List["EntryORM"]] = relationship("EntryORM", back_populates="event")
+    entries: Mapped[List["EntryORM"]] = relationship("EntryORM", foreign_keys="EntryORM.event_id")
 
 
 class EntryORM(Base):
@@ -45,7 +46,7 @@ class EntryORM(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     event_id = Column(Integer, ForeignKey("events.id"))
     player_email = Column(Integer, ForeignKey("players.email"))
-    ss_recipient_email = Column(Integer, ForeignKey("players.email"))
+    created_date = Column(DateTime, nullable=False, index=False, default=datetime.now())
+    ss_recipient_email = Column(Integer, ForeignKey("players.email"), nullable=True, default=None, index=False)
 
-    event: Mapped["EventORM"] = relationship("EventORM", back_populates="entries")
-    player: Mapped["PlayerORM"] = relationship("PlayerORM", back_populates="entries")
+    

@@ -2,10 +2,16 @@
 from typing import List
 from abc import ABC, abstractmethod
 
-from models import Event, Player, Entry
+from db.models import Event, Player, Entry
 
 class DataServiceException(Exception):
     """Data service exception"""
+    def __init__(self, message: str):
+        """Constructor"""
+        self.message = message
+        
+class FailedDataServiceException(DataServiceException):
+    """Failed data service exception"""
     def __init__(self, message: str):
         """Constructor"""
         self.message = message

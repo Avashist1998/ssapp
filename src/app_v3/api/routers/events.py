@@ -1,13 +1,26 @@
+from typing import Optional
 from fastapi import APIRouter, Request, HTTPException
 
 
-from models.event import Event, EventBase, EventCreate
-from services.db_service import FailedToCreateException, FailedToGetException, FailedToDeleteException, FailedToUpdateException
+from db.models import Event, EventBase, EventCreate
+from services.db_service import (
+    FailedToCreateException,
+    FailedToGetException,
+    FailedToDeleteException,
+    FailedToUpdateException,
+)
 
 router = APIRouter()
 
+
 @router.get("/")
-async def events(request: Request, offset: int = 1, limit: int = 10, creator_email: str = None, public: bool = True):
+async def get_events(
+    request: Request,
+    offset: int = 1,
+    limit: int = 10,
+    creator_email: str = None,
+    public: Optional[bool] = None,
+):
     """Events endpoint"""
     if offset < 1:
         offset = 1
@@ -16,10 +29,12 @@ async def events(request: Request, offset: int = 1, limit: int = 10, creator_ema
     if limit < 0:
         limit = 10
     try:
-        events = request.app.db_service.get_events(request.app.db, offset, limit, creator_email, public)
-        if events is None:
+        res = request.app.db_service.get_events(
+            request.app.db, offset, limit, creator_email, public
+        )
+        if res is None:
             return HTTPException(status_code=404, detail="No events found")
-        return {"events": events}
+        return {"count": res[0], "events": res[1]}
     except FailedToGetException as err:
         print(err)
         return HTTPException(status_code=500, detail="Failed to get events")
@@ -34,14 +49,16 @@ async def get_event(request: Request, event_id: int):
     try:
         event = request.app.db_service.get_event(request.app.db, event_id)
         if event is None:
-            return HTTPException(status_code=404, detail=f"Event with {event_id=} does not exist")
+            return HTTPException(
+                status_code=404, detail=f"Event with {event_id=} does not exist"
+            )
+        return event
     except FailedToGetException as err:
         print(err)
         return HTTPException(status_code=500, detail="Failed to get event")
     except Exception as err:
         print(err)
         return HTTPException(status_code=500, detail="Failed to get event")
-    return {"event_id": event_id}
 
 
 @router.post("/")
@@ -50,7 +67,9 @@ async def create_event(request: Request, event: EventBase):
     try:
         creator = request.app.db_service.get_player(request.app.db, event.creator)
         if creator is None:
-            return HTTPException(status_code=404, detail=f"Player with {event.creator=} does not exist")
+            return HTTPException(
+                status_code=404, detail=f"Player with {event.creator=} does not exist"
+            )
         res = request.app.db_service.add_event(request.app.db, event)
         if res is None:
             return HTTPException(status_code=500, detail="Failed to create event")
@@ -62,13 +81,17 @@ async def create_event(request: Request, event: EventBase):
         print(err)
         return HTTPException(status_code=500, detail="Failed to create event")
 
+
 @router.put("/")
 async def update_event(request: Request, event: EventBase):
     """Update event endpoint"""
     try:
+        old_event = request.app.db_service.get_event(request.app.db, event.id)
+        if old_event is None:
+            return HTTPException(
+                status_code=404, detail=f"Event with {event.id=} does not exist"
+            )
         res = request.app.db_service.update_event(request.app.db, event)
-        if res is None:
-            return HTTPException(status_code=404, detail="Event does not exist")
         return res
     except FailedToUpdateException as err:
         print(err)
@@ -77,10 +100,16 @@ async def update_event(request: Request, event: EventBase):
         print(err)
         return HTTPException(status_code=500, detail="Failed to update event")
 
+
 @router.delete("/{event_id}")
 async def delete_event(request: Request, event_id: str):
     """Delete event endpoint"""
     try:
+        event = request.app.db_service.get_event(request.app.db, event_id)
+        if event is None:
+            return HTTPException(
+                status_code=404, detail=f"Event with {event_id=} does not exist"
+            )
         request.app.db_service.delete_event(request.app.db, event_id)
         return {"message": "Event deleted"}
     except FailedToDeleteException as err:

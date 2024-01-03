@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing_extensions import Annotated
 
 from typing import Optional
-from event import Event
-from player import Player
+from models.event import Event
+from models.player import Player
 
 class EntryBase(BaseModel):
     """Entry model"""
@@ -19,8 +19,5 @@ class EntryCreate(EntryBase):
 class Entry(EntryBase):
     """Entry model"""
     id: int = Field(alias='_id', immutable=True)
-    
-    event: Optional[Event] = None
-    player: Optional[Player] = None
 
     model_config = ConfigDict(from_attributes=True)

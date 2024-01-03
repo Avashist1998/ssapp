@@ -4,7 +4,6 @@ from typing import List, Tuple, Optional
 from typing_extensions import Annotated
 from pydantic import BaseModel, Field, ConfigDict
 
-from models.player import Player
 from models.entry import Entry
 
 class EventBase(BaseModel):
@@ -29,5 +28,5 @@ class Event(EventBase):
     created_date: datetime.datetime = Field(default_factory=datetime.datetime.utcnow,
                                             immutable=True)
 
-    entries: List[Entry] = []
+    entries: List["Entry"] = []
     model_config = ConfigDict(from_attributes=True)

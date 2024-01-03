@@ -1,5 +1,5 @@
 """SQLITE DataStore implementation"""
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -28,7 +28,7 @@ class SqliteService:
         offset: int = 1,
         limit: int = 10,
         player_name: Optional[str] = None,
-    ) -> list[Player]:
+    ) -> List[Player]:
         """Get all players from the database"""
         try:
             db_players = (
@@ -117,7 +117,7 @@ class SqliteService:
         limit: int = 10,
         creator_email: Optional[str] = None,
         public: Optional[bool] = None,
-    ) -> Tuple[int, list[Event]]:
+    ) -> Tuple[int, List[Event]]:
         """Get all events from the database"""
         try:
             total_count = db.query(EventORM).count()
@@ -257,7 +257,7 @@ class SqliteService:
         event_id: Optional[int] = None,
         offset: int = 1,
         limit: int = 10,
-    ) -> list[Entry]:
+    ) -> List[Entry]:
         """Get all entries from the database"""
         try:
             db_entries = (

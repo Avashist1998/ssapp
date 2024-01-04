@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { addEntry, getEntries, deleteEntry } from '../api/entries'
 import { addPlayer, getPlayers, deletePlayer } from "../api/players"
 import { getEvents, deleteEvent, addEvent } from "../api/events"
-import { SSEventBase, SSEvent, PlayerBase, Player, Entry, EntryBase } from "../types/datatypes"
+import { SSEvent, PlayerBase, Player, Entry, EntryBase, SSEventBaseOptional } from "../types/datatypes"
 
 
 function stringifyDate(inputDate: string): string {
@@ -16,35 +16,33 @@ function stringifyDate(inputDate: string): string {
 
 
 function AddEventForm (props: {
-  addEvent: (event: SSEventBase) => void
+  addEvent: (event: SSEventBaseOptional) => void
 }) {
 
-  const [showErrorMsg, setShowErrMsg] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showErrorMsg, setShowErrMsg] = useState(false);
 
+  const [newEvent, setNewEvent] = useState<SSEventBaseOptional>(
+    {
+      name: "",
+      creator: "",
+      price: 0,
+      public: true,
+      locked: false,
+      rsvp_date: "",
+      event_date: "",
+    }
+  )
   function handleSummit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (event.currentTarget.elements.name.value === "") {
+    if (newEvent.name === "") {
       setErrorMessage("Event name cannot be empty.");
       setShowErrMsg(true);
     }
-    else if (event.currentTarget.elements.creatorEmail.value === "") {
+    else if (newEvent.creator === "") {
       setErrorMessage("Event creator email cannot be empty.");
       setShowErrMsg(true);
     } else {
-      const newEvent = {
-        name: event.currentTarget.elements.name.value,
-        creator: event.currentTarget.elements.creatorEmail.value,
-        location: event.currentTarget.elements.location.value,
-        price: event.currentTarget.elements.price.value,
-        limit: event.currentTarget.elements.limit.value,
-        
-        locked: false,
-        public: event.currentTarget.elements.public.value == "on",
-
-        rsvp_date: stringifyDate(event.currentTarget.elements.rsvpDate.value as string),
-        event_date: stringifyDate(event.currentTarget.elements.eventDate.value as string)
-      } as SSEventBase
       props.addEvent(newEvent)
     }
   }
@@ -56,49 +54,91 @@ function AddEventForm (props: {
         <label>
           Name:
         </label>
-        <input type="text" name="name" />
+        <input type="text" name="name" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            name: e.currentTarget.value
+          }))
+        }}/>
       </div>
       <div>
         <label>
           Creator email:
         </label>
-        <input type="text" name="creatorEmail" />
+        <input type="text" name="creatorEmail" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            email: e.currentTarget.value
+          }))
+        }}/>
       </div>
       <div>
         <label>
           location
         </label>
-        <input type="text" name="location" />
+        <input type="text" name="location" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            location: e.currentTarget.value
+          }))
+        }} />
       </div>
       <div>
         <label>
           price
         </label>
-        <input type="number" name="price" />
+        <input type="number" name="price" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            price: Number(e.currentTarget.value)
+          }))
+         }} />
       </div>
       <div>
         <label>
           limit
         </label>
-        <input type="number" name="limit"/>
+        <input type="number" name="limit" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            limit: Number(e.currentTarget.value)
+          }))
+        }}/>
       </div>
       <div>
         <label>
           Public
         </label>
-        <input type="checkbox" name="public"/>
+        <input type="checkbox" name="public" value={newEvent.public ? "on" : "off"} onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            public: e.currentTarget.value === "on"
+          }))
+        }}/>
       </div>
       <div>
         <label>
           RSVP date
         </label>
-        <input type="date" name="rsvpDate"></input>
+        <input type="date" name="rsvpDate" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            rsvp_date: stringifyDate(e.currentTarget.value as string)
+          }))
+        }}
+      />
       </div>
       <div>
         <label>
           Event date
         </label>
-        <input type="date" name="eventDate"></input>
+        <input type="date" name="eventDate" onChange={e => {
+          setNewEvent((prevState) => ({
+            ...prevState,
+            event_date: stringifyDate(e.currentTarget.value as string)
+          }))
+        }}
+      />
       </div>
       {showErrorMsg && <h4 className="text-red-700">{errorMessage}</h4>}
       <input type="submit" value="Submit" />
@@ -111,18 +151,20 @@ function AddEventForm (props: {
 function AddEntryForm (props: {
   addEntry: (entry: EntryBase) => void
 }) {
+
+  const[newEntry, setNewEntry] = useState({
+    event_id: -1,
+    player_email: ""
+  } as EntryBase)
+
   function handleSummit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (event.currentTarget.elements.event_id.value === undefined) {
+    if (newEntry.event_id === undefined) {
       console.log("can not Submit an Empty name")
     }
-    else if (event.currentTarget.elements.email.value === "") {
+    else if (newEntry.player_email === "") {
       console.log("Can not Submit an Empty Email")
     } else {
-      const newEntry = {
-        event_id: event.currentTarget.elements.event_id.value,
-        player_email: event.currentTarget.elements.email.value
-      } as EntryBase
       props.addEntry(newEntry)
     }
   }
@@ -134,13 +176,23 @@ function AddEntryForm (props: {
         <label>
           Event ID:
         </label>
-        <input type="number" name="event_id" />
+        <input type="number" name="event_id" onChange={e => {
+          setNewEntry((prevState) => ({
+            ...prevState,
+            event_id : Number(e.currentTarget.value)
+          }))
+        }} />
       </div>
       <div>
         <label>
           Your Email:
         </label>
-        <input type="text" name="email" />
+        <input type="text" name="email" onChange={e => {
+          setNewEntry((prevState) => ({
+            ...prevState,
+            player_email : e.currentTarget.value
+          }))
+        }} />
       </div>
       <input type="submit" value="Submit" />
     </form>
@@ -152,19 +204,20 @@ function AddPlayerForm (props: {
   addPlayer: (player: PlayerBase) => void
 }) {
 
+  const [newPlayer, setNewPlayer]= useState<PlayerBase>({
+    name: "",
+    email: ""
+  })
 
   function handleSummit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (event.currentTarget.elements.name.value === "") {
+    if (newPlayer.name === "") {
       console.log("can not Submit an Empty name")
     }
-    else if (event.currentTarget.elements.email.value === "") {
+    else if (newPlayer.email === "") {
       console.log("Can not Submit an Empty Email")
     } else {
-      const newPlayer = {
-        name: event.currentTarget.elements.name.value,
-        email: event.currentTarget.elements.email.value
-      } as PlayerBase
+
       props.addPlayer(newPlayer)
     }
   }
@@ -176,13 +229,23 @@ function AddPlayerForm (props: {
         <label>
           Name:
         </label>
-        <input type="text" name="name" />
+        <input type="text" name="name" onChange={e => {
+          setNewPlayer(prevState => ({
+            ...prevState,
+            name: e.currentTarget.value
+          }))
+        }}/>
       </div>
       <div>
         <label>
           Email:
         </label>
-        <input type="text" name="email" />
+        <input type="text" name="email" onChange={e => {
+          setNewPlayer(prevState => ({
+            ...prevState,
+            email: e.currentTarget.value
+          }))
+        }}/>
       </div>
       <input type="submit" value="Submit" />
     </form>
@@ -361,7 +424,7 @@ function AdminPage() {
       });
     }
   
-    function submitEvent (event: SSEventBase): void {
+    function submitEvent (event: SSEventBaseOptional): void {
       addEvent(event);
       setEventButtonText("Add Event")
       setShowEventForm(false)

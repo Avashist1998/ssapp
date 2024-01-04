@@ -1,10 +1,10 @@
-import { MessageRes } from "../types/api"
-import { EntryBase, Entry } from "../types/datatypes"
+import { apiURL }  from "./base";
+import { EntryBase, Entry, Message } from "../types/datatypes"
 
-const apiURL = "http://localhost:3000/entries/"
+const entiresApiURL = `${apiURL}/entries/`
 
 export async function getEntries() : Promise<Entry[]> {
-    const res = await fetch(apiURL,  {
+    const res = await fetch(entiresApiURL,  {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -14,34 +14,42 @@ export async function getEntries() : Promise<Entry[]> {
 }
 
 
-export async function  getEntry(entry_id: number): Promise<Entry> {
-    const res = await fetch(apiURL + entry_id, {
+export async function  getEntry(entry_id: number): Promise<Entry | Message> {
+    const res = await fetch(entiresApiURL + entry_id, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
         },
     })
+    if (!res.ok) {
+        return res.json() as Promise<Message>
+    }
     return res.json() as Promise<Entry>
+
 }
 
-export async function addEntry(entry: EntryBase): Promise<Entry> {
-    const res = await fetch(apiURL, {
+export async function addEntry(entry: EntryBase): Promise<Entry | Message> {
+    
+    const res = await fetch(entiresApiURL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(entry)
     })
-    return res.json() as Promise<Entry>
+    if (!res.ok) {
+        return res.json() as Promise<Message>;
+    }
+    return res.json() as Promise<Entry>;
 }
 
-export async function deleteEntry (entry_id: number): Promise<MessageRes> {
-    const res = await fetch(apiURL + entry_id.toString(), {
+export async function deleteEntry (entry_id: number): Promise<Message> {
+    const res = await fetch(entiresApiURL + entry_id.toString(), {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"
         }
     })
-    return res.json() as Promise<MessageRes>
+    return res.json() as Promise<Message>
 }
 

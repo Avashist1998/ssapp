@@ -2,7 +2,8 @@
 import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing_extensions import Annotated
-from typing import Optional, List, Tuple
+from typing import Optional, List
+
 
 class EntryBase(BaseModel):
     """Entry model"""
@@ -64,3 +65,13 @@ class Player(PlayerBase):
 
     entries: List[Entry] = []
     model_config = ConfigDict(from_attributes=True)
+
+
+class EventsResponse(BaseModel):
+    """Events response model"""
+    count: int
+    events: List[Event]
+
+class Message(BaseModel):
+    """Message model"""
+    message: str

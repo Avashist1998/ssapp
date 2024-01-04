@@ -9,10 +9,11 @@ from routers.entries import router as entries
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",  # React app address
-    "http://localhost:3000",  # FastAPI server address
-]
+# origins = [
+#     "http://localhost:5173",  # React app address
+#     "http://localhost:3000",  # FastAPI server address
+# ]
+origins = [ "*" ]
 
 app.add_middleware(
     CORSMiddleware,

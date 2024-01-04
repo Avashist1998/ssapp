@@ -1,6 +1,6 @@
 import { getEvent } from "../api/events"
 import { useEffect, useState } from "react";
-import { SSEvent, Entries, EntryBase } from "../types/datatypes";
+import { SSEvent, Entry, EntryBase } from "../types/datatypes";
 
 import { useParams, useNavigate } from "react-router-dom"
 import {Box, Button, CircularProgress, List, ListItem, ListItemText, TextField } from "@mui/material"
@@ -15,7 +15,7 @@ import { addEntry } from "../api/entries";
 
 
 const EntriesList = ( props : {
-    entries: Entries[],
+    entries: Entry[],
     setShowEntryForm:  React.Dispatch<React.SetStateAction<boolean>>
 }) => {
 
@@ -33,7 +33,7 @@ const EntriesList = ( props : {
                 <List>
                     {props.entries.map((entry) => {
                     return (
-                        <ListItem>
+                        <ListItem key={entry.id}>
                             <ListItemText primary={entry.player_email} secondary={entry.created_date}/>
                         </ListItem>
                         )
@@ -88,13 +88,15 @@ const EntrySignUpForm = (props: {
                 props.setReloadEvent(true);
                 props.setShowAddEntryForm(false);
             } else {
+                console.log("this was triggered")
                 setIsAddingEvent(false);
                 setEventPlayerEmail("");
-                setErrMsg(res.detail);
+                setErrMsg(res.message);
             }
         }).catch(err => {
             console.log(err);
             setIsAddingEvent(false);
+            setErrMsg("An error occurred while adding the player");
         })
     }
     return (
@@ -205,8 +207,8 @@ const EventPage = () => {
                         <h3 className="text-xl p-2"> Location: {event?.location}</h3>
                         <h3 className="text-xl p-2"> People Limit: {event?.limit}</h3>
                         <h3 className="text-xl p-2"> Total RSVP: {event?.entries.length}</h3>
-                        <h3 className="text-lg p-2">RSVP Date: {new Date(event?.rsvp_date).toLocaleDateString()}</h3>
-                        <h3 className="text-lg p-2">Event Date: {new Date(event?.event_date).toLocaleDateString()}</h3>
+                        <h3 className="text-lg p-2">RSVP Date: {new Date(event?.rsvp_date || "").toLocaleDateString()}</h3>
+                        <h3 className="text-lg p-2">Event Date: {new Date(event?.event_date || "").toLocaleDateString()}</h3>
 
                         <div className="flex justify-end left-0">
                             {event?.public ? <PublicIcon/> : <PublicOffIcon/>}
@@ -214,7 +216,7 @@ const EventPage = () => {
                         </div>
                     </div>
                 </div>
-                {showEntryForm ? <EntrySignUpForm eventId={Number(eventId)} addEntry={SignUpForEvent} setShowAddEntryForm={setShowEntryForm} setReloadEvent={setReloadEvent}/> : <EntriesList entries={event?.entries} setShowEntryForm={setShowEntryForm}/>}
+                {showEntryForm ? <EntrySignUpForm eventId={Number(eventId)} addEntry={SignUpForEvent} setShowAddEntryForm={setShowEntryForm} setReloadEvent={setReloadEvent}/> : <EntriesList entries={event?.entries || []} setShowEntryForm={setShowEntryForm}/>}
             </div>
         )
         }

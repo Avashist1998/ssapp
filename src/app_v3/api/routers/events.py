@@ -1,8 +1,8 @@
-from typing import Optional
-from fastapi import APIRouter, Request, HTTPException
+from typing import Optional, Tuple, List
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 
-
-from db.models import Event, EventBase, EventCreate
+from db.models import Event, EventBase, Message, EventsResponse
 from services.db_service import (
     FailedToCreateException,
     FailedToGetException,
@@ -13,7 +13,7 @@ from services.db_service import (
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("/", response_model=EventsResponse, responses={500: {"model": Message}})
 async def get_events(
     request: Request,
     offset: int = 1,
@@ -29,18 +29,18 @@ async def get_events(
     if limit < 0:
         limit = 10
     try:
-        res = request.app.db_service.get_events(
+        res: Optional[Tuple[int, List[Event]]] = request.app.db_service.get_events(
             request.app.db, offset, limit, creator_email, public
         )
         if res is None:
-            return HTTPException(status_code=404, detail="No events found")
-        return {"count": res[0], "events": res[1]}
+            return JSONResponse(status_code=404, content={"message": "No events found"})
+        return EventsResponse(count=res[0], events=res[1])
     except FailedToGetException as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to get events")
+        return JSONResponse(status_code=500, content={"message": "Failed to get events"})
     except Exception as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to get events")
+        return JSONResponse(status_code=500, content={"message": "Failed to get events"})
 
 
 @router.get("/{event_id}")
@@ -49,16 +49,16 @@ async def get_event(request: Request, event_id: int):
     try:
         event = request.app.db_service.get_event(request.app.db, event_id)
         if event is None:
-            return HTTPException(
-                status_code=404, detail=f"Event with {event_id=} does not exist"
+            return JSONResponse(
+                status_code=404, content={"message": f"Event with {event_id=} does not exist"}
             )
         return event
     except FailedToGetException as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to get event")
+        return JSONResponse(status_code=500, content={"message": "Failed to get event"})
     except Exception as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to get event")
+        return JSONResponse(status_code=500, content={"message": "Failed to get event"})
 
 
 @router.post("/")
@@ -67,19 +67,19 @@ async def create_event(request: Request, event: EventBase):
     try:
         creator = request.app.db_service.get_player(request.app.db, event.creator)
         if creator is None:
-            return HTTPException(
-                status_code=404, detail=f"Player with {event.creator=} does not exist"
+            return JSONResponse(
+                status_code=404, content={"message": f"Player with {event.creator=} does not exist"}
             )
         res = request.app.db_service.add_event(request.app.db, event)
         if res is None:
-            return HTTPException(status_code=500, detail="Failed to create event")
+            return JSONResponse(status_code=500, content={"message": "Failed to create event"})
         return res
     except FailedToCreateException as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to create event")
+        return JSONResponse(status_code=500, content={"message": "Failed to create event"})
     except Exception as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to create event")
+        return JSONResponse(status_code=500, content={"message": "Failed to create event"})
 
 
 @router.put("/")
@@ -88,17 +88,17 @@ async def update_event(request: Request, event: EventBase):
     try:
         old_event = request.app.db_service.get_event(request.app.db, event.id)
         if old_event is None:
-            return HTTPException(
-                status_code=404, detail=f"Event with {event.id=} does not exist"
+            return JSONResponse(
+                status_code=404, content={"message": f"Event with {event.id=} does not exist"}
             )
         res = request.app.db_service.update_event(request.app.db, event)
         return res
     except FailedToUpdateException as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to update event")
+        return JSONResponse(status_code=500, content={"message": "Failed to update event"})
     except Exception as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to update event")
+        return JSONResponse(status_code=500, content={"message": "Failed to update event"})
 
 
 @router.delete("/{event_id}")
@@ -107,13 +107,13 @@ async def delete_event(request: Request, event_id: str):
     try:
         event = request.app.db_service.get_event(request.app.db, event_id)
         if event is None:
-            return HTTPException(
-                status_code=404, detail=f"Event with {event_id=} does not exist"
+            return JSONResponse(
+                status_code=404, content={"message": f"Event with {event_id=} does not exist"}
             )
         request.app.db_service.delete_event(request.app.db, event_id)
         return {"message": "Event deleted"}
     except FailedToDeleteException as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to delete event")
+        return JSONResponse(status_code=500, content={"message": "Failed to delete event"})
     except Exception as _:
-        return HTTPException(status_code=500, detail="Failed to delete event")
+        return JSONResponse(status_code=500, content={"message": "Failed to delete event"})

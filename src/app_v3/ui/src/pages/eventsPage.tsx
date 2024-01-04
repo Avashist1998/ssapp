@@ -1,4 +1,4 @@
-import { SSEvent, SSEventBase, SSEventBaseOptional } from "../types/datatypes"
+import { SSEvent, SSEventBaseOptional } from "../types/datatypes"
 import {useState, useEffect} from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 
@@ -6,7 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from '@mui/icons-material/Search';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import { Button, TextField, Input, FormControlLabel, Checkbox, Box, CircularProgress } from "@mui/material";
+import { Button, TextField, FormControlLabel, Checkbox, Box, CircularProgress } from "@mui/material";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import Paper from '@mui/material/Paper';
 
@@ -94,22 +94,31 @@ const EventsPage = () => {
     const [price, setPrice] = useState<null | number>(null);
 
     const [isPublic, setIsPublic] = useState(true);
-    const [rsvpDate, setRSVPDate] = useState(null);
+    const [rsvpDate, setRSVPDate] = useState<Date | null>(null);
 
     const [eventLimit, setEventLimit] = useState<null | number>(null);
-    const [eventDate, setEventDate] = useState(null);
+    const [eventDate, setEventDate] = useState<Date | null>(null);
 
     const [showErrMsg, setShowErrMsg] = useState(false);
     const [errMsg, setErrMsg] = useState("");
 
     useEffect(() => {
+        console.log(creatorEmail);
         getEvents(numOffset, numLimit).then((res) => {
-            setEvents(res.events);
+
+            if (res === undefined) {
+                setEvents([]);
+            } else {
+                setEvents(res.events);
+            }
             setIsLoading(false);
             setReloadEvents(false);
+        }).catch(err => {
+            console.log(err);
+            setEvents([]);
         });
 
-      }, [reloadEvents, numLimit, numOffset])
+      }, [reloadEvents, numLimit, numOffset, creatorEmail])
 
     const gotToEvent = (eventId: number) => {
         const path = `./${eventId}`;
@@ -157,74 +166,78 @@ const EventsPage = () => {
     const submitAddEvent = () => {
 
         let newEvent;
-        if (eventLimit === null && price === null) {
-            newEvent = {
-                name: eventName,
-                location: eventLocation,
-                creator: eventCreatorEmail,
-                public: isPublic,
-                locked: false,
-                rsvp_date: rsvpDate.toISOString(),
-                event_date: eventDate.toISOString()
-            } as SSEventBaseOptional
-        } else if (eventLimit === null && price !== null) {
-            newEvent= {
-                name: eventName,
-                location: eventLocation,
-                creator: eventCreatorEmail,
-                public: isPublic,
-                price: price,
-                locked: false,
-                rsvp_date: rsvpDate.toISOString(),
-                event_date: eventDate.toISOString()
-            } as SSEventBaseOptional
-        } else if (eventLimit !== null && price === null) {
-            newEvent= {
-                name: eventName,
-                location: eventLocation,
-                creator: eventCreatorEmail,
-                public: isPublic,
-                limit: eventLimit,
-                locked: false,
-                rsvp_date: rsvpDate.toISOString(),
-                event_date: eventDate.toISOString()
-            } as SSEventBaseOptional
-        } else {
-            newEvent= {
-                name: eventName,
-                location: eventLocation,
-                creator: eventCreatorEmail,
-                price: price,
-                limit: eventLimit,
-                public: isPublic,
-                locked: false,
-                rsvp_date: rsvpDate.toISOString(),
-                event_date: eventDate.toISOString()
-            } as SSEventBaseOptional
+        if (rsvpDate !== null && eventDate !== null) {
+
+            if (eventLimit === null && price === null) {
+                newEvent = {
+                    name: eventName,
+                    location: eventLocation,
+                    creator: eventCreatorEmail,
+                    public: isPublic,
+                    locked: false,
+                    rsvp_date: rsvpDate.toISOString(),
+                    event_date: eventDate.toISOString()
+                } as SSEventBaseOptional
+            } else if (eventLimit === null && price !== null) {
+                newEvent= {
+                    name: eventName,
+                    location: eventLocation,
+                    creator: eventCreatorEmail,
+                    public: isPublic,
+                    price: price,
+                    locked: false,
+                    rsvp_date: rsvpDate.toISOString(),
+                    event_date: eventDate.toISOString()
+                } as SSEventBaseOptional
+            } else if (eventLimit !== null && price === null) {
+                newEvent= {
+                    name: eventName,
+                    location: eventLocation,
+                    creator: eventCreatorEmail,
+                    public: isPublic,
+                    limit: eventLimit,
+                    locked: false,
+                    rsvp_date: rsvpDate.toISOString(),
+                    event_date: eventDate.toISOString()
+                } as SSEventBaseOptional
+            } else {
+                newEvent= {
+                    name: eventName,
+                    location: eventLocation,
+                    creator: eventCreatorEmail,
+                    price: price,
+                    limit: eventLimit,
+                    public: isPublic,
+                    locked: false,
+                    rsvp_date: rsvpDate.toISOString(),
+                    event_date: eventDate.toISOString()
+                } as SSEventBaseOptional
+            }
+    
+            addEvent(newEvent).then((res) => {
+    
+                if ('name' in res) {
+                    console.log("This is where we log the error")
+                    console.log(res)
+                    resetParameters()
+                    setShowAddEventForm(false); 
+                    setEnableAddEvent(false);
+                } else{
+                    console.log("this is error")
+                    console.log(res)
+                    console.log(res.message);
+                    setShowErrMsg(true);
+                    setErrMsg(res.message);
+                    setEnableAddEvent(false);
+    
+                }
+                setReloadEvents(true);
+            }).catch((err) => {
+                console.log("this is were we are a catching")
+                console.log(err)
+            })
         }
 
-        addEvent(newEvent).then((res) => {
-
-            if ('name' in res) {
-                console.log("This is where we log the error")
-                console.log(res)
-                resetParameters()
-                setShowAddEventForm(false); 
-                setEnableAddEvent(false);
-            } else{
-                console.log("this is error")
-                console.log(res)
-                console.log(res.detail);
-                setShowErrMsg(true);
-                setErrMsg(res.detail);
-                setEnableAddEvent(false);
-
-            }
-            setReloadEvents(true);
-        }).catch((err) => {
-            console.log("this is were we are a catching")
-            console.log(err)
-        })
     }
 
     if (isLoading) {

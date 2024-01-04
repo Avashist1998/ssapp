@@ -14,7 +14,7 @@ export type SSEvent = {
 }
 
 export type Message = {
-    detail: string
+    message: string
 }
 
 export type SSEventBase = {

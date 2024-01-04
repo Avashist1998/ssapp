@@ -1,12 +1,12 @@
+import { apiURL } from "./base"
 import { MessageRes, EventsRes } from "../types/api"
-import { SSEvent, SSEventBase, Message, SSEventBaseOptional } from "../types/datatypes"
+import { SSEvent, Message, SSEventBaseOptional } from "../types/datatypes"
 
-const apiURL = "http://localhost:3000/events/"
-
+const eventsApiURL = `${apiURL}/events/`
 
 
 export async function  getEvents(offset: number = 1, limit: number = 10): Promise<EventsRes> {
-    const res = await fetch(`${apiURL}?limit=${limit}&offset=${offset}`, {
+    const res = await fetch(`${eventsApiURL}?limit=${limit}&offset=${offset}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -18,7 +18,7 @@ export async function  getEvents(offset: number = 1, limit: number = 10): Promis
 
 
 export async function deleteEvent (event_id: number): Promise<MessageRes> {
-    const res = await fetch(apiURL  + event_id.toString(), {
+    const res = await fetch(eventsApiURL  + event_id.toString(), {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"
@@ -31,7 +31,7 @@ export async function deleteEvent (event_id: number): Promise<MessageRes> {
 
 export async function addEvent(event: SSEventBaseOptional): Promise<SSEvent | Message> {
     try{
-        const res = await fetch(apiURL, {
+        const res = await fetch(eventsApiURL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -51,7 +51,7 @@ export async function addEvent(event: SSEventBaseOptional): Promise<SSEvent | Me
 
 
 export async function getEvent(event_id: string): Promise<SSEvent> {
-    const res = await fetch(apiURL +  event_id.toString(),
+    const res = await fetch(eventsApiURL +  event_id.toString(),
         {
             method: "GET",
             headers: {

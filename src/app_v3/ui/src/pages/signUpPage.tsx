@@ -16,7 +16,7 @@ const SignUpPage = () => {
 
 
     const gotToEvent = () => {
-        const path = "../events";
+        const path = "../";
         navigation(path);
     }
 

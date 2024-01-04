@@ -50,7 +50,7 @@ export async function addEvent(event: SSEventBaseOptional): Promise<SSEvent | Me
 }
 
 
-export async function getEvent(event_id: string): Promise<SSEvent> {
+export async function getEvent(event_id: string): Promise<SSEvent| Message> {
     const res = await fetch(eventsApiURL +  event_id.toString(),
         {
             method: "GET",
@@ -59,5 +59,8 @@ export async function getEvent(event_id: string): Promise<SSEvent> {
             }
         } 
     )
+    if (!res.ok) {
+        return res.json() as Promise<Message>
+    }
     return res.json() as Promise<SSEvent>
 }

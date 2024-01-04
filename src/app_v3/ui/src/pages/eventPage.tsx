@@ -153,11 +153,11 @@ const EventPage = () => {
     const [loading, setLoading] = useState(true);
     const [show404, setShow404] = useState(false);
     const [showEntryForm, setShowEntryForm] = useState(false);
- 
+    const [msg404, setMsg404] = useState("Page not found");
     const navigation = useNavigate();
 
     const gotToEventsPage = () => {
-        const path = "../events";
+        const path = "../";
         navigation(path);
     }
 
@@ -169,11 +169,18 @@ const EventPage = () => {
         if (eventId === undefined) {
         setShow404(true)
         } else {
-        getEvent(eventId).then((event: SSEvent) => {
-            setEvent(event);
-            setLoading(false)
-            setReloadEvent(false);
+        getEvent(eventId).then((res) => {
+            if ("id" in res) {
+                setEvent(res);
+                setLoading(false)
+                setReloadEvent(false);
+            } else {
+                setShow404(true)
+                setLoading(false)
+                setMsg404(res.message)
+            }
         }).catch((err) => {
+            console.log("and error occurred")
             console.log(err);
             setShow404(true);
             setReloadEvent(false);
@@ -190,7 +197,10 @@ const EventPage = () => {
     } else {
         if (show404) {
         return (
-            <h1>404 User not found</h1> 
+            <div>
+                <h1 className="flex justify-center pt-[50px] font-bold text-6xl">404</h1>
+                <h2 className="flex justify-center pt-[50px] font-bold text-3xl">{msg404}</h2> 
+            </div>
         )
         } else {
         return (
@@ -205,7 +215,7 @@ const EventPage = () => {
                         <h2 className="font-bold text-5xl p-2">{event?.name}</h2>
                         <h3 className="text-xl p-2"> Creator: {event?.creator}</h3>
                         <h3 className="text-xl p-2"> Location: {event?.location}</h3>
-                        <h3 className="text-xl p-2"> People Limit: {event?.limit}</h3>
+                        <h3 className="text-xl p-2"> People Limit: {event?.limit === null}</h3>
                         <h3 className="text-xl p-2"> Total RSVP: {event?.entries.length}</h3>
                         <h3 className="text-lg p-2">RSVP Date: {new Date(event?.rsvp_date || "").toLocaleDateString()}</h3>
                         <h3 className="text-lg p-2">Event Date: {new Date(event?.event_date || "").toLocaleDateString()}</h3>

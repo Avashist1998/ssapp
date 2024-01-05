@@ -42,6 +42,7 @@ export function EventsTable ( props: {
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number,
       ) => {
+        console.log(event?.currentTarget.value);
         setPage(newPage);
     };
 

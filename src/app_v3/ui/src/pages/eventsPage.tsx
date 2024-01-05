@@ -7,7 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import { Button, TextField, FormControlLabel, Checkbox, Box, CircularProgress } from "@mui/material";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination } from '@mui/material';
 import Paper from '@mui/material/Paper';
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -21,11 +21,39 @@ import PublicOffIcon from '@mui/icons-material/PublicOff';
 import { addEvent, getEvents } from "../api/events"
 
 export function EventsTable ( props: {
+    page: number,
     events: SSEvent[],
-    navigateToEventPage: (eventId : number) => void
+    rowPerPage: number,
+    totalCount: number,
+    navigateToEventPage: (eventId : number) => void,
+    onPageAndRowPerPageChange: (page: number, rowPerPage: number) => void
   }) {
-   
 
+    const [page, setPage] = useState(props.page);
+    const [rowsPerPage, setRowsPerPage] = useState(props.rowPerPage);
+
+
+    useEffect(() => {
+        console.log(page, rowsPerPage);
+        props.onPageAndRowPerPageChange(page, rowsPerPage);
+    }, [page, rowsPerPage])
+
+    const handleChangePage = (
+        event: React.MouseEvent<HTMLButtonElement> | null,
+        newPage: number,
+      ) => {
+        setPage(newPage);
+    };
+
+
+    const handleChangeRowsPerPage = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+      ) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+        
+      };
+    
     return (
         <TableContainer component={Paper}>
             <Table>
@@ -61,6 +89,15 @@ export function EventsTable ( props: {
                     })
                 }
                 </TableBody>
+
+                <TablePagination
+                    component="div"
+                    count={props.totalCount}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
             </Table>
         </TableContainer>
 
@@ -71,6 +108,7 @@ export function EventsTable ( props: {
 const EventsPage = () => {
 
     const [events, setEvents] = useState([] as SSEvent[]);
+    const [totalEventsCount, setTotalEventsCount] = useState(0);
     const [reloadEvents, setReloadEvents] = useState(false);
     const [showAddEventForm, setShowAddEventForm] = useState(false);
 
@@ -110,6 +148,7 @@ const EventsPage = () => {
                 setEvents([]);
             } else {
                 setEvents(res.events);
+                setTotalEventsCount(res.count);
             }
             setIsLoading(false);
             setReloadEvents(false);
@@ -119,6 +158,25 @@ const EventsPage = () => {
         });
 
       }, [reloadEvents, numLimit, numOffset, creatorEmail])
+
+
+
+    const getEventWithParams = (offset: number = 0, limit: number = 10) => {
+        getEvents(offset, limit).then((res) => {
+            if (res === undefined) {
+                setEvents([]);
+            } else {
+                setEvents(res.events);
+                setTotalEventsCount(res.count);
+            }
+            setIsLoading(false);
+            setReloadEvents(false);
+        }).catch(err => {
+            console.log(err);
+            setEvents([]);
+        });
+    }
+
 
     const gotToEvent = (eventId: number) => {
         const path = `./${eventId}`;
@@ -280,7 +338,7 @@ const EventsPage = () => {
 
                 </div>
                 <div className="flex justify-center items-center my-2">
-                    <EventsTable events={events} navigateToEventPage={gotToEvent}/>
+                    <EventsTable events={events} totalCount={totalEventsCount} page={numOffset} rowPerPage={numLimit} navigateToEventPage={gotToEvent} onPageAndRowPerPageChange={getEventWithParams}/>
                 </div>
 
                 {/* <h2>{numOffset} and {numLimit} and {creatorEmail}</h2> */}

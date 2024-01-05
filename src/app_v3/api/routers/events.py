@@ -16,18 +16,15 @@ router = APIRouter()
 @router.get("/", response_model=EventsResponse, responses={500: {"model": Message}})
 async def get_events(
     request: Request,
-    offset: int = 1,
-    limit: int = 10,
-    creator_email: str = None,
+    offset: Optional[int] = 0,
+    limit: Optional[int] = 10,
+    creator_email: Optional[str] = None,
     public: Optional[bool] = None,
 ):
     """Events endpoint"""
-    if offset < 1:
-        offset = 1
-    if limit > 50:
-        limit = 50
-    if limit < 0:
-        limit = 10
+    limit = max(10, limit)
+    limit = min(100, limit)
+    offset = max(0, offset)
     try:
         res: Optional[Tuple[int, List[Event]]] = request.app.db_service.get_events(
             request.app.db, offset, limit, creator_email, public

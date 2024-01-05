@@ -17,8 +17,8 @@ async def get_entries(
     request: Request,
     event_id: Optional[str] = None,
     player_id: Optional[str] = None,
-    offset: int = 1,
-    limit: int = 10,
+    offset: Optional[int] = 0,
+    limit: Optional[int] = 10,
 ):
     """Entries endpoint"""
     try:

@@ -113,7 +113,7 @@ class SqliteService:
     def get_events(
         self,
         db: Session,
-        offset: int = 1,
+        offset: int = 0,
         limit: int = 10,
         creator_email: Optional[str] = None,
         public: Optional[bool] = None,
@@ -122,15 +122,9 @@ class SqliteService:
         try:
             total_count = db.query(EventORM).count()
             print(f"total number of events in db = {total_count}")
-            # print(
-            #     db.query(EventORM)
-            #     .offset(offset - 1 * limit)
-            #     .limit(limit)
-            #     .count()
-            # )
             db_events = (
                 db.query(EventORM)
-                .offset((offset - 1) * limit)
+                .offset((offset) * limit)
                 .limit(limit)
                 .all()
             )
@@ -138,7 +132,7 @@ class SqliteService:
                 db_events = (
                     db.query(EventORM)
                     .filter(EventORM.public == public)
-                    .offset((offset - 1) * limit)
+                    .offset(offset * limit)
                     .limit(limit)
                     .all()
                 )
@@ -148,7 +142,7 @@ class SqliteService:
                     db.query(EventORM)
                     .filter(EventORM.creator == creator_email)
                     .filter(EventORM.public == public)
-                    .offset((offset - 1) * limit)
+                    .offset(offset * limit)
                     .limit(limit)
                     .all()
                 )
@@ -157,12 +151,11 @@ class SqliteService:
                     db.query(EventORM)
                     .filter(EventORM.creator == creator_email)
                     .filter(EventORM.public == public)
-                    .offset((offset - 1) * limit)
+                    .offset(offset * limit)
                     .limit(limit)
                     .all()
                 )
             db.commit()
-            print(db_events)
             return total_count, [Event.model_validate(db_event) for db_event in db_events]
         except SQLAlchemyError as err:
             print(err)

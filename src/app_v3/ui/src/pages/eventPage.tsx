@@ -215,7 +215,7 @@ const EventPage = () => {
                         <h2 className="font-bold text-5xl p-2">{event?.name}</h2>
                         <h3 className="text-xl p-2"> Creator: {event?.creator}</h3>
                         <h3 className="text-xl p-2"> Location: {event?.location}</h3>
-                        <h3 className="text-xl p-2"> People Limit: {event?.limit === null}</h3>
+                        <h3 className="text-xl p-2"> People Limit: {event?.limit}</h3>
                         <h3 className="text-xl p-2"> Total RSVP: {event?.entries.length}</h3>
                         <h3 className="text-lg p-2">RSVP Date: {new Date(event?.rsvp_date || "").toLocaleDateString()}</h3>
                         <h3 className="text-lg p-2">Event Date: {new Date(event?.event_date || "").toLocaleDateString()}</h3>

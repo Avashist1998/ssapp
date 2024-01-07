@@ -17,6 +17,7 @@ class PlayerORM(Base):
     entries: Mapped[List["EntryORM"]] = relationship("EntryORM",
                                                      foreign_keys="EntryORM.player_email")
 
+    created_events: Mapped[List["EventORM"]] = relationship("EventORM", foreign_keys="EventORM.creator")
 
 class EventORM(Base):
     """Event model"""

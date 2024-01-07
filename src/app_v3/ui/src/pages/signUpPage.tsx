@@ -1,48 +1,40 @@
-import { useEffect, useState } from "react";
-import { TextField, Button, InputLabel } from "@mui/material";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import { Button} from "@mui/material";
 import ArticleIcon from '@mui/icons-material/Article';
 
 import { addPlayer } from "../api/players";
 import { PlayerBase } from "../types/datatypes";
+import SignUpUserForm from "../forms/SignUpUserFrom";
+import MessageAlert from "../components/MessageAlert";
+
 
 const SignUpPage = () => {
-    const [userName, setUserName] = useState("");
-    const [userEmail, setUserEmail] = useState("");
-    const [enableSignUpButton, setEnableSignUpButton] = useState(false);
-    const navigation = useNavigate()
 
+    const [errMsg, setErrMsg] = useState("");
+    const [addPlayerMsg, setAddPlayerMsg] = useState("");
+    const navigation = useNavigate()
 
     const gotToEvent = () => {
         const path = "../";
         navigation(path);
     }
 
-    useEffect(() => {
-        let val = true;
-        if (userName === "") {
-            val = val && false;
-        }
-        if (userEmail === "") {
-            val = val && false;
-        }
-        if (!userEmail.includes("@")) {
-            val = val && false;
-        }
-        setEnableSignUpButton(val);
-    }, [userName, userEmail])
-
-    const signUpUser = () => {
-        const player = {
-            name: userName,
-            email: userEmail
-        } as PlayerBase;
+    const resetScreen =  () => {
+        setErrMsg("");
+        setAddPlayerMsg("");
+    }
+    const signUpUser = (player: PlayerBase) => {
+        resetScreen();
         addPlayer(player).then((res) => {
-            console.log(res);
-            setUserName("");
-            setUserEmail("");
+            if ("name" in res) {
+                setAddPlayerMsg(`Player with name = ${res.name} and email ${res.email} has been created`)
+            } else {
+                setErrMsg(res.message)
+            }
+        }).catch(() => {
+            setErrMsg("API is currently down, please try again at a different time.")
         })
     }
     return (
@@ -54,22 +46,12 @@ const SignUpPage = () => {
             </div>
             <div className="justify-center flex">
                 <div>
-                    <h1 className="text-8xl font-bold m-5">Sign up</h1>
-                    <div>
-                        <div className="justify-center flex p-2">
-                            <InputLabel>User Name:</InputLabel>
-                            <TextField id="eventName" label="Required" value={userName} required onChange={e => setUserName(e.target.value)}/>
-                        </div>
-                        <div className="justify-center flex p-2">
-                            <InputLabel>User Email: </InputLabel>
-                            <TextField id="creatorEmail" label="Required" value={userEmail} required onChange={e => setUserEmail(e.target.value)}/>
-                        </div>
+                    <div className="flex justify-center">
+                        <h1 className="text-8xl font-bold m-5">Sign up</h1>
                     </div>
-                    <div className="justify-center flex">
-                        <Button startIcon={<PersonAddAltIcon/>} variant="contained" color="success" disabled={!enableSignUpButton} onClick={signUpUser}>
-                            Sign Up
-                        </Button>
-                    </div>
+                    <SignUpUserForm submitUser={signUpUser}>
+                        <MessageAlert isError={errMsg !== ""} msg={errMsg === "" ? addPlayerMsg : errMsg}/>
+                    </SignUpUserForm>
                 </div>
             </div>
         </div>

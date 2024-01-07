@@ -1,148 +1,23 @@
-import { getEvent } from "../api/events"
 import { useEffect, useState } from "react";
-import { SSEvent, Entry, EntryBase } from "../types/datatypes";
-
 import { useParams, useNavigate } from "react-router-dom"
-import {Box, Button, CircularProgress, List, ListItem, ListItemText, TextField } from "@mui/material"
+
+import { Box, Button, CircularProgress } from "@mui/material"
 import ArticleIcon  from "@mui/icons-material/Article";
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import PublicIcon from '@mui/icons-material/Public';
 import PublicOffIcon from '@mui/icons-material/PublicOff';
 import AddIcon from "@mui/icons-material/Add";
-import CancelIcon from "@mui/icons-material/Cancel";
+
+
+import { getEvent } from "../api/events"
 import { addEntry } from "../api/entries";
+import { SSEvent, EntryBase } from "../types/datatypes";
 
+import AddEntryFrom from "../forms/AddEntryForm";
+import EntriesList from "../components/EntriesList";
+import MessageAlert from "../components/MessageAlert";
 
-const EntriesList = ( props : {
-    entries: Entry[],
-    setShowEntryForm:  React.Dispatch<React.SetStateAction<boolean>>
-}) => {
-
-    return (
-        <>
-            <div className="flex justify-end left-0">
-                <Button startIcon={<AddIcon/>} variant="contained" color="success" onClick={() => {props.setShowEntryForm(true)}} >
-                    SignUp
-                </Button>
-            </div>
-            <div className="flex justify-center">
-                <h1  className="text-2xl font-bold">Players</h1>
-            </div>
-            <div className="flex justify-center">
-                <List>
-                    {props.entries.map((entry) => {
-                    return (
-                        <ListItem key={entry.id}>
-                            <ListItemText primary={entry.player_email} secondary={entry.created_date}/>
-                        </ListItem>
-                        )
-                    })
-                }
-                </List>
-            </div>
-        </>
-
-    )
-}
-
-
-const EntrySignUpForm = (props: {
-    eventId: number,
-    addEntry: (entry: EntryBase) => void,
-    setReloadEvent: React.Dispatch<React.SetStateAction<boolean>>,
-    setShowAddEntryForm: React.Dispatch<React.SetStateAction<boolean>>
-}) => {
-
-    const [enableAddEvent, setEnableAddEvent] = useState(false);
-    const [eventPlayerEmail, setEventPlayerEmail] = useState("");
-
-    const [isAddingEvent, setIsAddingEvent] = useState(false);
-    const [errMsg, setErrMsg] = useState("");
-
-    useEffect(() => {
-        let val = true;
-        if (eventPlayerEmail === "") {
-            val = val && false;
-        }
-        if (!eventPlayerEmail.includes("@")) {
-            val = val && false;
-        } 
-        if (!eventPlayerEmail.includes(".")) {
-            val = val && false;
-        }
-        setEnableAddEvent(val);
-    }, [eventPlayerEmail])
-
-    const submitAddEntry = () => {
-        const newEntry = {
-            event_id: props.eventId,
-            player_email:  eventPlayerEmail
-        } as EntryBase;
-        setIsAddingEvent(true);
-        addEntry(newEntry).then((res) => {
-            if ("id" in res) {
-                console.log(res);
-                setIsAddingEvent(false);
-                setEventPlayerEmail("");
-                props.setReloadEvent(true);
-                props.setShowAddEntryForm(false);
-            } else {
-                console.log("this was triggered")
-                setIsAddingEvent(false);
-                setEventPlayerEmail("");
-                setErrMsg(res.message);
-            }
-        }).catch(err => {
-            console.log(err);
-            setIsAddingEvent(false);
-            setErrMsg("An error occurred while adding the player");
-        })
-    }
-    return (
-        <div>
-            <div className="flex justify-end">
-                <Button onClick={() => {props.setShowAddEntryForm(false)}} startIcon={<CancelIcon/>} variant="contained" color="error">
-                        Close
-                </Button>
-            </div>
-
-            {isAddingEvent ? 
-            <Box className="flex justify-center">
-                <CircularProgress/>
-            </Box>
-            :
-            <> 
-                <div className="justify-center flex">
-                    <h1 className="text-2xl font-bold justify-center flex">Add Player</h1>
-                </div>
-                <div className="justify-center flex">
-                    <div>
-                        <div>
-                            <h2>Player Email</h2>
-                            <TextField id="creatorEmail" label="Required" required onChange={e => setEventPlayerEmail(e.target.value)}/>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex justify-center py-2">
-                    <Button onClick={() => {submitAddEntry()}} startIcon={<AddIcon/>} color="success" variant="contained" disabled={!enableAddEvent}>
-                        Add Event
-                    </Button>
-                </div>
-                {
-                    errMsg !== "" &&
-                    <div className="flex justify-center">
-                        <h3>
-                            {errMsg}
-                        </h3>
-                    </div>
-                }
-            </>
-            }
-
-        </div> 
-    );
-}
 
 const EventPage = () => {
 
@@ -154,6 +29,10 @@ const EventPage = () => {
     const [show404, setShow404] = useState(false);
     const [showEntryForm, setShowEntryForm] = useState(false);
     const [msg404, setMsg404] = useState("Page not found");
+
+    const [errMsg, setErrMsg] = useState("");
+    const [addedPlayerMsg, setAddedPlayerMsg] = useState("");
+
     const navigation = useNavigate();
 
     const gotToEventsPage = () => {
@@ -161,10 +40,26 @@ const EventPage = () => {
         navigation(path);
     }
 
-    const SignUpForEvent = (entry: EntryBase) => {
-        console.log(entry);
+    const submitAddEntry = (newEntry: EntryBase, callback: () => void) => {
+        addEntry(newEntry).then((res) => {
+            if ("id" in res) {
+                setAddedPlayerMsg(`Player with email = ${res.player_email} has been added to event with id = ${res.event_id}`)
+            } else {
+                setErrMsg(res.message);
+            }
+        }).catch(() => {
+            setErrMsg("Api is currently down, please try again at a different time.");
+        }).finally(() => {
+            setReloadEvent(true);
+            callback();
+        })
     }
 
+    const closeForm = () => {
+        setShowEntryForm(false);
+        setErrMsg("");
+        setAddedPlayerMsg("");
+    }
     useEffect(() => {
         if (eventId === undefined) {
         setShow404(true)
@@ -210,7 +105,7 @@ const EventPage = () => {
                         Events
                     </Button>
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-center m-2">
                     <div className="bg-slate-200 rounded-md px-[80px] py-[20px]" >
                         <h2 className="font-bold text-5xl p-2">{event?.name}</h2>
                         <h3 className="text-xl p-2"> Creator: {event?.creator}</h3>
@@ -226,7 +121,20 @@ const EventPage = () => {
                         </div>
                     </div>
                 </div>
-                {showEntryForm ? <EntrySignUpForm eventId={Number(eventId)} addEntry={SignUpForEvent} setShowAddEntryForm={setShowEntryForm} setReloadEvent={setReloadEvent}/> : <EntriesList entries={event?.entries || []} setShowEntryForm={setShowEntryForm}/>}
+                {showEntryForm ? 
+                    <AddEntryFrom event_id= {Number(eventId)} submitAddEntry={submitAddEntry} closeForm={closeForm}>
+                        <MessageAlert isError={errMsg !== ""} msg={errMsg === "" ? addedPlayerMsg : errMsg}/>
+                    </AddEntryFrom> 
+                    : 
+                    <EntriesList entries={event?.entries || []}>
+                        <div className="flex justify-end left-0">
+                            <Button startIcon={<AddIcon/>} variant="contained" color="success" onClick={() => {setShowEntryForm(true)}} >
+                                SignUp
+                            </Button>
+                        </div>
+                    </EntriesList>
+                    
+                    }
             </div>
         )
         }

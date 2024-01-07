@@ -13,4 +13,4 @@ ENV PYTHONPATH "/code:${PYTHONPATH}"
 EXPOSE 8000
 
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/code/key.pem", "--ssl-certfile", "/code/cert.pem"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

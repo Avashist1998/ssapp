@@ -4,16 +4,28 @@ import { SSEvent, Message, SSEventBaseOptional } from "../types/datatypes"
 
 const eventsApiURL = `${apiURL}/events/`
 
+type GetEventsOptions = {
+    offset?: number;
+    limit?: number;
+    isPublic?: boolean;
+    creatorName?: string;
+    searchTerm?: string;
+}
 
-export async function  getEvents(offset: number = 1, limit: number = 10): Promise<EventsRes> {
-    const res = await fetch(`${eventsApiURL}?limit=${limit}&offset=${offset}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        },
-    })
-
-    return res.json() as Promise<EventsRes>
+export async function  getEvents({offset = 0, limit= 10}: GetEventsOptions = {}): Promise<EventsRes> {
+    // console.log(isPublic, creatorName, searchTerm);
+    try {
+        const res = await fetch(`${eventsApiURL}?limit=${limit}&offset=${offset}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+        })
+        return res.json() as Promise<EventsRes>
+    } catch (error) {
+        console.log(error)
+        throw error;
+    }
 }
 
 

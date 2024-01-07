@@ -25,20 +25,20 @@ class SqliteService:
     def get_players(
         self,
         db: Session,
-        offset: int = 1,
+        offset: int = 0,
         limit: int = 10,
         player_name: Optional[str] = None,
     ) -> List[Player]:
         """Get all players from the database"""
         try:
             db_players = (
-                db.query(PlayerORM).offset((offset - 1) * limit).limit(limit).all()
+                db.query(PlayerORM).offset(offset * limit).limit(limit).all()
             )
             if player_name:
                 db_players = (
                     db.query(PlayerORM)
                     .filter(PlayerORM.name.like(player_name))
-                    .offset((offset - 1) * limit)
+                    .offset(offset * limit)
                     .limit(limit)
                     .all()
                 )
@@ -58,7 +58,6 @@ class SqliteService:
             db.add(db_player)
             db.commit()
             db.refresh(db_player)
-            print(db_player)
             return Player.model_validate(db_player)
         except SQLAlchemyError as err:
             raise FailedDataServiceException("Failed to create player") from err
@@ -69,7 +68,6 @@ class SqliteService:
         """Get a player from the database"""
         try:
             db_player = db.query(PlayerORM).filter(PlayerORM.email == email).first()
-            db.commit()
             if db_player is None:
                 return None
             db.refresh(db_player)
@@ -83,12 +81,20 @@ class SqliteService:
     def delete_player(self, db: Session, email: str) -> Player:
         """Deletes the player from database"""
         try:
-            player_deleted_count = (
+            player = db.query(PlayerORM).filter(PlayerORM.email == email).first()
+            if player is None:
+                raise SQLAlchemyError("Failed to find player to delete")
+
+            for entry in player.entries:
+                db.delete(entry)
+
+            for event in player.created_events:
+                db.delete(event)
+
+            _ = (
                 db.query(PlayerORM).filter(PlayerORM.email == email).delete()
             )
             db.commit()
-            if player_deleted_count == 0:
-                raise SQLAlchemyError("Failed to find player to delete")
         except SQLAlchemyError as err:
             raise FailedToDeleteException("Failed to delete player") from err
         except Exception as err:

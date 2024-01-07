@@ -1,6 +1,6 @@
 """Model"""
 import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing_extensions import Annotated
 from typing import Optional, List
 
@@ -8,7 +8,7 @@ from typing import Optional, List
 class EntryBase(BaseModel):
     """Entry model"""
     event_id: int = Field(immutable=True)
-    player_email: str = Field(immutable=True)
+    player_email: EmailStr = Field(immutable=True)
 
 class EntryCreate(EntryBase):
     """Create entry model"""
@@ -18,7 +18,7 @@ class Entry(EntryBase):
     id: int = Field(alias='id', immutable=True)
     created_date: datetime.datetime = Field(default_factory=datetime.datetime.utcnow,
                                             immutable=True)
-    ss_recipient_email: Optional[Annotated[str, Field(immutable=False,
+    ss_recipient_email: Optional[Annotated[EmailStr, Field(immutable=False,
                                                         default_factory=None,
                                                         Optional=True)]] = None
     model_config = ConfigDict(from_attributes=True)
@@ -26,7 +26,7 @@ class Entry(EntryBase):
 class EventBase(BaseModel):
     """Event Base model"""
     name: str
-    creator: str = Field(immutable=True)
+    creator: EmailStr = Field(immutable=True)
     location: Optional[Annotated[str, Field(immutable=False)]] = None
     limit: Optional[Annotated[int, Field(default=None, immutable=False)]] = None
     price: float = Field(default=0.0, immutable=False)
@@ -52,7 +52,7 @@ class PlayerBase(BaseModel):
     """Player Base model"""
 
     name: str = Field(immutable=False)
-    email: str = Field(immutable=True)
+    email: EmailStr = Field(immutable=True)
 
 
 class PlayerCreate(PlayerBase):
@@ -63,7 +63,9 @@ class Player(PlayerBase):
     created_date: datetime.datetime = Field(default_factory=datetime.datetime.utcnow,
                                             immutable=True)
 
+    events: List[Event] = []
     entries: List[Entry] = []
+
     model_config = ConfigDict(from_attributes=True)
 
 

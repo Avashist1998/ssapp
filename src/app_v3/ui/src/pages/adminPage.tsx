@@ -1,151 +1,11 @@
 import { FormEvent, useEffect, useState } from 'react'
 
-
+import AddEventForm from '../forms/AddEventForm';
+import { getEvents, deleteEvent, addEvent } from "../api/events"
 import { addEntry, getEntries, deleteEntry } from '../api/entries'
 import { addPlayer, getPlayers, deletePlayer } from "../api/players"
-import { getEvents, deleteEvent, addEvent } from "../api/events"
-import { SSEvent, PlayerBase, Player, Entry, EntryBase, SSEventBaseOptional } from "../types/datatypes"
+import { SSEvent, PlayerBase, Player, Entry, EntryBase, SSEventBaseOptional } from "../types/datatypes";
 
-
-function stringifyDate(inputDate: string): string {
-
-  const date = new Date(inputDate);
-  const isoString = date.toISOString();
-  return isoString;
-}
-
-
-function AddEventForm (props: {
-  addEvent: (event: SSEventBaseOptional) => void
-}) {
-
-  const [errorMessage, setErrorMessage] = useState("");
-  const [showErrorMsg, setShowErrMsg] = useState(false);
-
-  const [newEvent, setNewEvent] = useState<SSEventBaseOptional>(
-    {
-      name: "",
-      creator: "",
-      price: 0,
-      public: true,
-      locked: false,
-      rsvp_date: "",
-      event_date: "",
-    }
-  )
-  function handleSummit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (newEvent.name === "") {
-      setErrorMessage("Event name cannot be empty.");
-      setShowErrMsg(true);
-    }
-    else if (newEvent.creator === "") {
-      setErrorMessage("Event creator email cannot be empty.");
-      setShowErrMsg(true);
-    } else {
-      props.addEvent(newEvent)
-    }
-  }
-  return (
-    <div className="p-[10px]">
-    <h3> Add the Event </h3>
-    <form onSubmit={handleSummit}>
-      <div>
-        <label>
-          Name:
-        </label>
-        <input type="text" name="name" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            name: e.currentTarget.value
-          }))
-        }}/>
-      </div>
-      <div>
-        <label>
-          Creator email:
-        </label>
-        <input type="text" name="creatorEmail" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            email: e.currentTarget.value
-          }))
-        }}/>
-      </div>
-      <div>
-        <label>
-          location
-        </label>
-        <input type="text" name="location" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            location: e.currentTarget.value
-          }))
-        }} />
-      </div>
-      <div>
-        <label>
-          price
-        </label>
-        <input type="number" name="price" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            price: Number(e.currentTarget.value)
-          }))
-         }} />
-      </div>
-      <div>
-        <label>
-          limit
-        </label>
-        <input type="number" name="limit" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            limit: Number(e.currentTarget.value)
-          }))
-        }}/>
-      </div>
-      <div>
-        <label>
-          Public
-        </label>
-        <input type="checkbox" name="public" value={newEvent.public ? "on" : "off"} onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            public: e.currentTarget.value === "on"
-          }))
-        }}/>
-      </div>
-      <div>
-        <label>
-          RSVP date
-        </label>
-        <input type="date" name="rsvpDate" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            rsvp_date: stringifyDate(e.currentTarget.value as string)
-          }))
-        }}
-      />
-      </div>
-      <div>
-        <label>
-          Event date
-        </label>
-        <input type="date" name="eventDate" onChange={e => {
-          setNewEvent((prevState) => ({
-            ...prevState,
-            event_date: stringifyDate(e.currentTarget.value as string)
-          }))
-        }}
-      />
-      </div>
-      {showErrorMsg && <h4 className="text-red-700">{errorMessage}</h4>}
-      <input type="submit" value="Submit" />
-    </form>
-    </div>
-  )
-}
 
 
 function AddEntryForm (props: {
@@ -372,7 +232,6 @@ export function EventsTable ( props: {
 function AdminPage() {
     const [reloadEvents, setReloadEvents] = useState(false);
     const [showEventForm, setShowEventForm] = useState(false);
-    const [eventButtonText, setEventButtonText] = useState("Add Event");
   
     const [reloadPlayers, setReloadPlayers] = useState(false);
     const [showPlayerForm, setShowPlayerForm] = useState(false);
@@ -388,7 +247,7 @@ function AdminPage() {
     const [events, setEvents] = useState([] as SSEvent[]);
   
     useEffect(() => {
-      getEvents().then((res) => {
+      getEvents({ limit: 50 }).then((res) => {
         setEvents(res.events)
       });
       setReloadEvents(false);
@@ -426,8 +285,6 @@ function AdminPage() {
   
     function submitEvent (event: SSEventBaseOptional): void {
       addEvent(event);
-      setEventButtonText("Add Event")
-      setShowEventForm(false)
       setReloadEvents(true)
     }
   
@@ -445,6 +302,10 @@ function AdminPage() {
       setReloadEntries(true)
     }
     
+    const closeEventForm = () => {
+      setShowEventForm(false);
+    }
+
     return (
 
         <div>
@@ -461,15 +322,10 @@ function AdminPage() {
               {playerButtonText} 
           </button>
           <button className="bg-green-300 hover:bg-green-500 m-2" onClick={() => {
-            if (!showEventForm) {
-            setEventButtonText("Close Event Form")
-            setShowEventForm(true)
-            } else {
-            setEventButtonText("Add Event")
-            setShowEventForm(false)
+              setShowEventForm(true)
             }
-        }}>
-            {eventButtonText} 
+          }>
+          Add Event 
         </button>
           <button className="bg-green-300 hover:bg-green-500 m-2" onClick={() => {
             if (!showEntryForm) {
@@ -483,20 +339,21 @@ function AdminPage() {
             {entryButtonText} 
         </button>
         </div>
-        <h1 className="justify-center flex">SS Players!</h1>
-
-
-        {
-        showPlayerForm && <AddPlayerForm  addPlayer={submitPlayer}/>
-        }
-
+        <h1 className="flex text-3xl font-bold justify-center">SS Players!</h1>
         <PlayersTable players={players} removePlayer={removePlayer} />
-        <h1>SS Events!</h1>
-        {
-        showEventForm && <AddEventForm  addEvent={submitEvent}/>
-        }
+        <div className="justify-center flex">
+          {
+            showPlayerForm && <AddPlayerForm  addPlayer={submitPlayer}/>
+          }
+        </div>
 
-        <EventsTable events={events} removeEvent={removeEvent}/>
+        <h1 className="flex text-3xl font-bold justify-center">SS Events!</h1>
+        <div className="justify-center flex">
+          <EventsTable events={events} removeEvent={removeEvent}/>
+        </div>
+        {
+          showEventForm && <AddEventForm onCloseForm={closeEventForm} submitEvent={submitEvent}/>
+        }
 
         <h1>SS Entries!</h1>
         {

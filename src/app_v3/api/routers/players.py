@@ -1,8 +1,9 @@
 """Player router"""
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 
-from db.models import Player, PlayerBase
+from db.models import Player, PlayerBase, Message
 from services.db_service import (
     FailedToCreateException,
     FailedToGetException,
@@ -16,17 +17,14 @@ router = APIRouter()
 @router.get("/")
 async def get_players(
     request: Request,
-    offset: int = 1,
+    offset: int = 0,
     limit: int = 10,
     player_name: Optional[str] = None,
 ):
     """Players endpoint"""
-    if offset < 1:
-        offset = 1
-    if limit > 50:
-        limit = 50
-    if limit < 0:
-        limit = 10
+    offset = max(offset, 0)
+    limit = max(limit, 10)
+    limit = min(limit, 100)
     try:
         players = request.app.db_service.get_players(
             request.app.db, offset, limit, player_name
@@ -56,22 +54,22 @@ async def get_player(request: Request, player_email: str):
         )
 
 
-@router.post("/")
+@router.post("/", response_model=Player, responses={409: {"model": Message}, 500: {"model": Message}})
 async def create_player(request: Request, player: PlayerBase):
     """Create player endpoint"""
     try:
         db_player = request.app.db_service.get_player(request.app.db, player.email)
         if db_player:
-            return HTTPException(
-                status_code=409, detail=f"Player with {player.email=} already exists"
+            return JSONResponse(
+                status_code=409, content={"message": f"Player with {player.email=} already exists"}
             )
         db_player = request.app.db_service.add_player(request.app.db, player)
         return db_player
     except FailedToCreateException as err:
         print(err)
-        return HTTPException(status_code=500, detail="Failed to create player")
+        return JSONResponse(status_code=500, content={"message": "Failed to create player"})
     except Exception as _:
-        return HTTPException(status_code=500, detail="Failed to create a player")
+        return JSONResponse(status_code=500, content={"message": "Failed to create a player"})
 
 
 @router.put("/")

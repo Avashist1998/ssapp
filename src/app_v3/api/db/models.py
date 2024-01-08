@@ -1,6 +1,6 @@
 """Model"""
 import datetime
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, NonNegativeInt, NonNegativeFloat
 from typing_extensions import Annotated
 from typing import Optional, List
 
@@ -28,8 +28,8 @@ class EventBase(BaseModel):
     name: str
     creator: EmailStr = Field(immutable=True)
     location: Optional[Annotated[str, Field(immutable=False)]] = None
-    limit: Optional[Annotated[int, Field(default=None, immutable=False)]] = None
-    price: float = Field(default=0.0, immutable=False)
+    limit: Optional[Annotated[NonNegativeInt, Field(default=None, immutable=False)]] = None
+    price: NonNegativeFloat = Field(default=0.0, immutable=False)
     public: bool = Field(default=True, immutable=True)
     locked: bool = Field(default=False, immutable=False)
     rsvp_date: datetime.datetime = Field(immutable=False)

@@ -2,9 +2,8 @@ import {useState, useEffect} from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 
 import AddIcon from "@mui/icons-material/Add";
-import SearchIcon from '@mui/icons-material/Search';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import { Button, TextField, FormControlLabel, Checkbox, Box, CircularProgress } from "@mui/material";
+import { Button, Box, CircularProgress } from "@mui/material";
 
 
 import { addEvent, getEvents } from "../api/events"
@@ -13,6 +12,7 @@ import { SSEvent, SSEventBaseOptional } from "../types/datatypes"
 import AddEventForm from "../forms/AddEventForm";
 import EventsTable from "../components/EventsTable";
 import MessageAlert from "../components/MessageAlert";
+import EventFilterForm from "../forms/EventFilterForm";
 
 
 
@@ -67,6 +67,10 @@ const EventsPage = () => {
         navigate(path);
     }
 
+    const submitEventsSearchForm = (searchText: string, type: string) => {
+        console.log("type: ", type);
+        console.log("searchText: ", searchText);
+    }
     const onParamChange = (offset: number = 0, limit: number = 10, creatorEmail: string = "") => {
         console.log("creatorEmail: ", creatorEmail)
         let path = `${location.pathname}?`
@@ -144,22 +148,7 @@ const EventsPage = () => {
     
                 { !showAddEventForm && 
                 <>    
-                    <div className="flex justify-center items-center my-2">
-    
-                            <TextField  id="searchText" variant="standard" />
-                            <div className="mx-5">
-                                <Button startIcon={<SearchIcon/>} variant="contained" color="success">
-                                    Search
-                                </Button>
-                            </div>
-                            <div>
-                                <FormControlLabel control={<Checkbox defaultChecked />} label="Public" />
-                            </div>
-                            <div>
-                                <FormControlLabel control={<Checkbox defaultChecked />} label="Private" />
-                            </div>
-    
-                    </div>
+                    <EventFilterForm onSubmit={submitEventsSearchForm}/>
                     <div className="flex justify-center items-center my-2">
                         <EventsTable events={events} totalCount={totalEventsCount} page={numOffset} rowPerPage={numLimit} navigateToEventPage={gotToEvent} onParamChange={onParamChange}/>
                     </div>

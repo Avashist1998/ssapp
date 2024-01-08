@@ -112,8 +112,18 @@ const EventPage = () => {
                         <h3 className="text-xl p-2"> Location: {event?.location}</h3>
                         <h3 className="text-xl p-2"> People Limit: {event?.limit}</h3>
                         <h3 className="text-xl p-2"> Total RSVP: {event?.entries.length}</h3>
-                        <h3 className="text-lg p-2">RSVP Date: {new Date(event?.rsvp_date || "").toLocaleDateString()}</h3>
-                        <h3 className="text-lg p-2">Event Date: {new Date(event?.event_date || "").toLocaleDateString()}</h3>
+                        <h3 className="text-lg p-2">RSVP Date: {new Date(event?.rsvp_date || "").toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long',
+                            })}</h3>
+                        <h3 className="text-lg p-2">Event Date: {new Date(event?.event_date || "").toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            weekday: 'long',
+                            })}</h3>
 
                         <div className="flex justify-end left-0">
                             {event?.public ? <PublicIcon/> : <PublicOffIcon/>}

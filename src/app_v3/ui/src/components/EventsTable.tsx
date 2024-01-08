@@ -40,7 +40,7 @@ function EventsTable ( props: {
                     <TableRow>
                         <TableCell className="w-[28%]" >Name</TableCell>
                         <TableCell className="w-[28%]">Location</TableCell>
-                        <TableCell className="w-[28%]">Creator</TableCell>
+                        <TableCell className="w-[28%]">Date</TableCell>
                         <TableCell className="w-[16%]">Locked</TableCell>
                         <TableCell className="w-[16%]">Public</TableCell>
                     </TableRow>
@@ -56,7 +56,11 @@ function EventsTable ( props: {
                         className="cursor-pointer hover:bg-slate-200">
                             <TableCell className="w-[28%]">{event.name}</TableCell>
                             <TableCell className="w-[28%]">{event.location}</TableCell>
-                            <TableCell className="w-[28%]">{event.creator}</TableCell>
+                            <TableCell className="w-[28%]">{new Date(event.event_date).toLocaleDateString(undefined, {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                            })}</TableCell>
                             <TableCell className="w-[15%]">
                                 { event.locked ? <LockIcon/> : <LockOpenIcon/>}
                             </TableCell>

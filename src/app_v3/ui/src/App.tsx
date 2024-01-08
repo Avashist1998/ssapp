@@ -1,8 +1,8 @@
 import "./App.css"
-import AdminPage from "./pages/adminPage";
-import EventsPage from "./pages/eventsPage";
-import SignUpPage from "./pages/signUpPage";
-import EventPage from "./pages/eventPage";
+import AdminPage from "./pages/AdminPage";
+import EventsPage from "./pages/EventsPage";
+import SignUpPage from "./pages/SignUpPage";
+import EventPage from "./pages/EventPage";
 import { Route, Routes, HashRouter } from "react-router-dom"
 
 

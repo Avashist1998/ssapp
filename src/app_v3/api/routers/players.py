@@ -1,6 +1,6 @@
 """Player router"""
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Path
 from fastapi.responses import JSONResponse
 
 from db.models import Player, PlayerBase, Message
@@ -38,7 +38,9 @@ async def get_players(
 
 
 @router.get("/{player_email}")
-async def get_player(request: Request, player_email: str):
+async def get_player(request: Request,
+                     player_email: str = Path(...,
+                                              description="The email of the player to get")):
     """Player endpoint"""
     try:
         player = request.app.db_service.get_player(request.app.db, player_email)
@@ -91,7 +93,9 @@ async def update_player(request: Request, player: PlayerBase):
 
 
 @router.delete("/{player_email}")
-async def delete_event(request: Request, player_email: str):
+async def delete_player(request: Request,
+                        player_email: str = Path(...,
+                                                 description="The email of the player to delete")):
     """Delete event endpoint"""
     try:
         db_player = request.app.db_service.get_player(request.app.db, player_email)

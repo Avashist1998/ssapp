@@ -189,6 +189,7 @@ class SqliteService:
             db.refresh(db_event)
             return Event.model_validate(db_event)
         except SQLAlchemyError as err:
+            print(err)
             raise FailedToCreateException("Failed to create event") from err
         except Exception as err:
             print(err)

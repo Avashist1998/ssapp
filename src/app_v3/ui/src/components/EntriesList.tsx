@@ -19,7 +19,12 @@ const EntriesList = ( props : {
                     {props.entries.map((entry) => {
                     return (
                         <ListItem key={entry.id}>
-                            <ListItemText primary={entry.player_email} secondary= {new Date(entry.created_date).toLocaleDateString()}/>
+                            <ListItemText primary={entry.player_email} secondary= {new Date(entry.created_date).toLocaleDateString(undefined, {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                            })}/>
                         </ListItem>
                         )
                     })

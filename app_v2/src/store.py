@@ -4,8 +4,8 @@ import random
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 
-from models import Event, EventStatus
-from exceptions import EventNotFoundException, PlayerNotFoundException
+from src.models import Event, EventStatus
+from src.exceptions import EventNotFoundException, PlayerNotFoundException
 
 
 class SSDataStore:

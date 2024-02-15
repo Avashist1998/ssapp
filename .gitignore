@@ -1,2 +1,14 @@
 # python
 *__pycache__
+.vscode
+
+*.pem
+*.db
+
+dist
+node_modules
+
+.env
+env
+venv
+.venv

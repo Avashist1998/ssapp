@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from models import Event
+from src.models import Event
 
 class SSCli:
     """SS cli implementation"""

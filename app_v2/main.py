@@ -1,4 +1,4 @@
-from app import SSApp
+from src.app import SSApp
 
 if __name__ == "__main__":
     app = SSApp()

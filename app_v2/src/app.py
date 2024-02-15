@@ -2,10 +2,10 @@
 import random
 from datetime import datetime, timedelta
 
-from models import ConState
-from view import SSCli
-from store import SSDataStore
-from exceptions import EventNotFoundException, PlayerNotFoundException, QuitException
+from src.models import ConState
+from src.view import SSCli
+from src.store import SSDataStore
+from src.exceptions import EventNotFoundException, PlayerNotFoundException, QuitException
 
 class SSApp:
     """Secrete Santa Application"""
